@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "racing-api": {
+      "command": "python",
+      "args": ["-m", "racing_mcp.server"],
+      "cwd": "/path/to/racing-mcp-server",
+      "env": {
+        "RACING_API_USERNAME": "your_username",
+        "RACING_API_PASSWORD": "your_password"
+      }
+    }
+  }
+}
