@@ -1,0 +1,25 @@
+services:
+  racing-mcp:
+    build: .
+    container_name: racing-mcp-server
+    ports:
+      - "8080:8080"
+    environment:
+      - RACING_API_USERNAME=${RACING_API_USERNAME}
+      - RACING_API_PASSWORD=${RACING_API_PASSWORD}
+      - RACING_API_BASE_URL=https://api.theracingapi.com/v1
+      - MCP_HOST=0.0.0.0
+      - MCP_PORT=8080
+      # Cache TTLs
+      - CACHE_TTL_STATIC=86400
+      - CACHE_TTL_RACECARDS=180
+      - CACHE_TTL_RESULTS=180
+      - CACHE_TTL_ANALYSIS=900
+      - CACHE_TTL_SEARCH=3600
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/sse"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
