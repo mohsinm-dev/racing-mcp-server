@@ -142,6 +142,9 @@ async def _run_sse(host: str, port: int) -> None:
 
     sse = SseServerTransport("/messages")
 
+    async def handle_health(request):
+        return JSONResponse({"status": "ok"})
+
     async def handle_sse(request):
         async with sse.connect_sse(
             request.scope, request.receive, request._send
@@ -166,6 +169,7 @@ async def _run_sse(host: str, port: int) -> None:
 
     starlette_app = Starlette(
         routes=[
+            Route("/health", endpoint=handle_health),
             Route("/sse", endpoint=handle_sse),
             Mount("/messages", app=handle_messages),
         ],
