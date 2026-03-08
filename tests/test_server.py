@@ -385,6 +385,22 @@ class TestHandlers:
         with pytest.raises(ValueError, match="Missing required argument"):
             await handle_tool("get_horse_analysis", {"horse_id": "hrs_123"})
 
+    @pytest.mark.asyncio
+    async def test_empty_name_search_raises(self):
+        """Search handlers should reject empty name strings."""
+        for tool_name in [
+            "search_horse", "search_jockey", "search_trainer",
+            "search_owner", "search_sire", "search_dam", "search_damsire",
+        ]:
+            with pytest.raises(ValueError, match="non-empty name"):
+                await handle_tool(tool_name, {"name": ""})
+
+    @pytest.mark.asyncio
+    async def test_whitespace_name_search_raises(self):
+        """Search handlers should reject whitespace-only name strings."""
+        with pytest.raises(ValueError, match="non-empty name"):
+            await handle_tool("search_horse", {"name": "   "})
+
 
 # ── Handler/Tool sync test ───────────────────────────────────────────────────────
 

@@ -20,6 +20,12 @@ logger = logging.getLogger(__name__)
 
 # ── Shared helpers ───────────────────────────────────────────────────────────────
 
+def _validate_name(name: str, entity: str) -> None:
+    """Raise ValueError if name is empty or whitespace-only."""
+    if not name or not name.strip():
+        raise ValueError(f"A non-empty name is required to search for a {entity}.")
+
+
 def _parse_distance_param(distance_str: str | None) -> int | None:
     """Convert human distance string to yards for the API."""
     if not distance_str:
@@ -142,36 +148,43 @@ async def _get_courses(args: dict) -> dict:
 # ── Search ────────────────────────────────────────────────────────────────────────
 
 async def _search_horse(args: dict) -> dict:
+    _validate_name(args["name"], "horse")
     client = get_racing_client()
     return await client.get("/horses/search", {"name": args["name"]})
 
 
 async def _search_jockey(args: dict) -> dict:
+    _validate_name(args["name"], "jockey")
     client = get_racing_client()
     return await client.get("/jockeys/search", {"name": args["name"]})
 
 
 async def _search_trainer(args: dict) -> dict:
+    _validate_name(args["name"], "trainer")
     client = get_racing_client()
     return await client.get("/trainers/search", {"name": args["name"]})
 
 
 async def _search_owner(args: dict) -> dict:
+    _validate_name(args["name"], "owner")
     client = get_racing_client()
     return await client.get("/owners/search", {"name": args["name"]})
 
 
 async def _search_sire(args: dict) -> dict:
+    _validate_name(args["name"], "sire")
     client = get_racing_client()
     return await client.get("/sires/search", {"name": args["name"]})
 
 
 async def _search_dam(args: dict) -> dict:
+    _validate_name(args["name"], "dam")
     client = get_racing_client()
     return await client.get("/dams/search", {"name": args["name"]})
 
 
 async def _search_damsire(args: dict) -> dict:
+    _validate_name(args["name"], "damsire")
     client = get_racing_client()
     return await client.get("/damsires/search", {"name": args["name"]})
 
