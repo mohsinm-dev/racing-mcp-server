@@ -8,6 +8,7 @@ import pytest
 from unittest.mock import AsyncMock, patch
 
 from racing_mcp.config import (
+    Config,
     parse_distance_to_yards,
     normalize_going,
     normalize_race_type,
@@ -104,6 +105,41 @@ class TestRaceTypeNormalization:
     def test_case_insensitive(self):
         assert normalize_race_type("FLAT") == "flat"
         assert normalize_race_type("Chase") == "chase"
+
+
+# ── Config validation tests ──────────────────────────────────────────────────
+
+class TestConfigValidation:
+    def test_validate_raises_when_username_missing(self):
+        cfg = Config(username="", password="secret")
+        with pytest.raises(ValueError, match="RACING_API_USERNAME"):
+            cfg.validate()
+
+    def test_validate_raises_when_password_missing(self):
+        cfg = Config(username="user", password="")
+        with pytest.raises(ValueError, match="RACING_API_PASSWORD"):
+            cfg.validate()
+
+    def test_validate_raises_when_both_missing(self):
+        cfg = Config(username="", password="")
+        with pytest.raises(ValueError):
+            cfg.validate()
+
+    def test_validate_passes_with_credentials(self):
+        cfg = Config(username="user", password="pass")
+        cfg.validate()  # should not raise
+
+    def test_default_base_url(self):
+        cfg = Config()
+        assert "theracingapi.com" in cfg.base_url
+
+    def test_default_cache_ttls_are_positive(self):
+        cfg = Config()
+        assert cfg.cache_ttl_static > 0
+        assert cfg.cache_ttl_racecards > 0
+        assert cfg.cache_ttl_results > 0
+        assert cfg.cache_ttl_analysis > 0
+        assert cfg.cache_ttl_search > 0
 
 
 # ── Tool definition tests ────────────────────────────────────────────────────────
