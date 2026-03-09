@@ -5,7 +5,8 @@ Run with: uv run pytest tests/ -v
 """
 
 import pytest
-from unittest.mock import AsyncMock, patch
+import httpx
+from unittest.mock import AsyncMock, patch, PropertyMock
 
 from racing_mcp.config import (
     Config,
@@ -471,6 +472,46 @@ class TestCacheSelection:
         """URLs with both /results and /analysis should go to analysis cache."""
         from racing_mcp.client import _select_cache, _cache_analysis
         assert _select_cache("/results/analysis/something") is _cache_analysis
+
+
+class TestClientErrorHandling:
+    @pytest.mark.asyncio
+    async def test_network_error_raises_runtime_error(self):
+        """httpx.RequestError should be wrapped in RuntimeError."""
+        with patch("racing_mcp.handlers.get_racing_client") as mock_get_client:
+            mock_client = AsyncMock()
+            mock_client.get = AsyncMock(
+                side_effect=RuntimeError("Network error connecting to Racing API: connection refused")
+            )
+            mock_get_client.return_value = mock_client
+
+            with pytest.raises(RuntimeError, match="Network error"):
+                await handle_tool("get_regions", {})
+
+    @pytest.mark.asyncio
+    async def test_404_returns_not_found_marker(self):
+        """404 responses should return a _not_found dict, not raise."""
+        not_found_result = {"_not_found": True, "message": "No data found for /horses/xyz/results"}
+        with patch("racing_mcp.handlers.get_racing_client") as mock_get_client:
+            mock_client = AsyncMock()
+            mock_client.get = AsyncMock(return_value=not_found_result)
+            mock_get_client.return_value = mock_client
+
+            result = await handle_tool("get_horse_results", {"horse_id": "xyz"})
+            assert result["_not_found"] is True
+
+    @pytest.mark.asyncio
+    async def test_401_raises_permission_error(self):
+        """401 responses should raise PermissionError."""
+        with patch("racing_mcp.handlers.get_racing_client") as mock_get_client:
+            mock_client = AsyncMock()
+            mock_client.get = AsyncMock(
+                side_effect=PermissionError("Invalid Racing API credentials.")
+            )
+            mock_get_client.return_value = mock_client
+
+            with pytest.raises(PermissionError, match="credentials"):
+                await handle_tool("get_regions", {})
 
 
 class TestRateLimiter:
