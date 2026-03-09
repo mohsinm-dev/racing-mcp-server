@@ -119,6 +119,8 @@ class RacingAPIClient:
             logger.debug(f"Cache HIT: {path}")
             return cache[key]
 
+        logger.debug(f"Cache MISS: {path}")
+
         # Apply rate limiting
         is_static = "/courses" in path or "/regions" in path
         limiter = _limiter_static if is_static else _limiter_general
