@@ -473,6 +473,49 @@ class TestCacheSelection:
         assert _select_cache("/results/analysis/something") is _cache_analysis
 
 
+class TestRateLimiter:
+    @pytest.mark.asyncio
+    async def test_first_acquire_does_not_block(self):
+        """First acquire should return immediately (bucket starts full)."""
+        from racing_mcp.client import RateLimiter
+        import time
+
+        limiter = RateLimiter(rate=5.0)
+        start = time.monotonic()
+        await limiter.acquire()
+        elapsed = time.monotonic() - start
+        assert elapsed < 0.1  # should be near-instant
+
+    @pytest.mark.asyncio
+    async def test_burst_up_to_rate(self):
+        """Should allow burst requests up to the rate limit."""
+        from racing_mcp.client import RateLimiter
+        import time
+
+        limiter = RateLimiter(rate=5.0)
+        start = time.monotonic()
+        for _ in range(5):
+            await limiter.acquire()
+        elapsed = time.monotonic() - start
+        assert elapsed < 0.5  # 5 tokens available, should be fast
+
+    @pytest.mark.asyncio
+    async def test_exceeding_rate_causes_delay(self):
+        """Exceeding the rate should introduce a sleep delay."""
+        from racing_mcp.client import RateLimiter
+        import time
+
+        limiter = RateLimiter(rate=2.0)  # 2 req/sec
+        # Drain all tokens
+        await limiter.acquire()
+        await limiter.acquire()
+        # Next acquire should block
+        start = time.monotonic()
+        await limiter.acquire()
+        elapsed = time.monotonic() - start
+        assert elapsed >= 0.1  # should have waited
+
+
 class TestCacheKey:
     def test_same_inputs_same_key(self):
         from racing_mcp.client import _cache_key
