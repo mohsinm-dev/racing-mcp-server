@@ -26,6 +26,7 @@ import mcp.types as types
 from mcp.server import NotificationOptions, Server
 from mcp.server.models import InitializationOptions
 
+from . import __version__
 from .client import get_racing_client
 from .config import config
 from .handlers import handle_tool
@@ -102,7 +103,7 @@ async def _run_stdio() -> None:
                 write_stream,
                 InitializationOptions(
                     server_name="racing-api-mcp",
-                    server_version="1.0.0",
+                    server_version=__version__,
                     capabilities=server.get_capabilities(
                         notification_options=NotificationOptions(),
                         experimental_capabilities={},
@@ -154,7 +155,7 @@ async def _run_sse(host: str, port: int) -> None:
                 streams[1],
                 InitializationOptions(
                     server_name="racing-api-mcp",
-                    server_version="1.0.0",
+                    server_version=__version__,
                     capabilities=server.get_capabilities(
                         notification_options=NotificationOptions(),
                         experimental_capabilities={},
