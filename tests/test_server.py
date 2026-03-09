@@ -374,6 +374,18 @@ class TestHandlers:
             assert params["limit"] == 100
 
     @pytest.mark.asyncio
+    async def test_negative_limit_raises(self):
+        """Negative limit should raise ValueError."""
+        with pytest.raises(ValueError, match="limit must be at least 1"):
+            await handle_tool("get_results", {"limit": -5})
+
+    @pytest.mark.asyncio
+    async def test_negative_skip_raises(self):
+        """Negative skip should raise ValueError."""
+        with pytest.raises(ValueError, match="skip must be non-negative"):
+            await handle_tool("get_results", {"skip": -1})
+
+    @pytest.mark.asyncio
     async def test_missing_required_arg_raises_value_error(self):
         """Missing required arguments should raise ValueError with clear message."""
         with pytest.raises(ValueError, match="Missing required argument"):

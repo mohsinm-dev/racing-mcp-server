@@ -101,9 +101,15 @@ def _base_filters(args: dict) -> dict:
 
     # Pagination
     if args.get("limit"):
-        params["limit"] = min(int(args["limit"]), 100)
+        limit = int(args["limit"])
+        if limit < 1:
+            raise ValueError("limit must be at least 1.")
+        params["limit"] = min(limit, 100)
     if args.get("skip"):
-        params["skip"] = int(args["skip"])
+        skip = int(args["skip"])
+        if skip < 0:
+            raise ValueError("skip must be non-negative.")
+        params["skip"] = skip
 
     return params
 
