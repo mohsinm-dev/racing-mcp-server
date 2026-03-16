@@ -52,6 +52,14 @@ class Config:
                 "Copy .env.example to .env and add your credentials."
             )
 
+    def __repr__(self) -> str:
+        masked_pw = "***" if self.password else ""
+        return (
+            f"Config(username={self.username!r}, password={masked_pw!r}, "
+            f"base_url={self.base_url!r}, host={self.host!r}, port={self.port!r}, "
+            f"request_timeout={self.request_timeout!r})"
+        )
+
 
 # Singleton config
 config = Config()
