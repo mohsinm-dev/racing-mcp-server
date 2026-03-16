@@ -23,6 +23,11 @@ class Config:
     host: str = field(default_factory=lambda: os.getenv("MCP_HOST", "0.0.0.0"))
     port: int = field(default_factory=lambda: int(os.getenv("MCP_PORT", "8080")))
 
+    # HTTP client settings
+    request_timeout: float = field(
+        default_factory=lambda: float(os.getenv("RACING_API_TIMEOUT", "30.0"))
+    )
+
     # Cache TTLs (seconds)
     cache_ttl_static: int = field(
         default_factory=lambda: int(os.getenv("CACHE_TTL_STATIC", "86400"))

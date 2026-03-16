@@ -100,7 +100,7 @@ class RacingAPIClient:
             self._client = httpx.AsyncClient(
                 base_url=config.base_url,
                 auth=(config.username, config.password),
-                timeout=30.0,
+                timeout=config.request_timeout,
                 headers={"Accept": "application/json"},
             )
         return self._client
