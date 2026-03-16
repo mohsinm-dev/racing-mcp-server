@@ -166,11 +166,19 @@ class RacingAPIClient:
                         f"Racing API error {e.response.status_code}: {e.response.text}"
                     )
             except httpx.RequestError as e:
+                last_error = e
+                if attempt < self._MAX_RETRIES - 1:
+                    wait = self._BACKOFF_BASE * (2 ** attempt)
+                    logger.warning(
+                        f"Network error ({e}), retrying in {wait}s "
+                        f"(attempt {attempt + 1}/{self._MAX_RETRIES})"
+                    )
+                    await asyncio.sleep(wait)
+                    continue
                 raise RuntimeError(f"Network error connecting to Racing API: {e}")
 
         raise RuntimeError(
-            f"Rate limit exceeded after {self._MAX_RETRIES} retries. "
-            "Please slow down requests."
+            f"Request failed after {self._MAX_RETRIES} retries: {last_error}"
         )
 
     async def close(self) -> None:
