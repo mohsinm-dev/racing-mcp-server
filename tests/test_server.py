@@ -557,6 +557,51 @@ class TestRateLimiter:
         assert elapsed >= 0.1  # should have waited
 
 
+class TestCacheManagement:
+    def test_cache_stats_returns_all_buckets(self):
+        from racing_mcp.client import cache_stats
+        stats = cache_stats()
+        assert set(stats.keys()) == {"static", "racecards", "results", "analysis", "search"}
+        for v in stats.values():
+            assert isinstance(v, int)
+
+    def test_clear_caches_returns_count(self):
+        from racing_mcp.client import clear_caches, _cache_static, cache_stats
+        _cache_static["test_key"] = "test_value"
+        cleared = clear_caches()
+        assert cleared >= 1
+        assert all(v == 0 for v in cache_stats().values())
+
+
+class TestConfigRepr:
+    def test_repr_masks_password(self):
+        cfg = Config(username="user", password="supersecret")
+        r = repr(cfg)
+        assert "supersecret" not in r
+        assert "***" in r
+        assert "user" in r
+
+    def test_repr_empty_password_shows_empty(self):
+        cfg = Config(username="user", password="")
+        r = repr(cfg)
+        assert "'***'" not in r
+
+    def test_repr_includes_timeout(self):
+        cfg = Config(username="u", password="p", request_timeout=60.0)
+        r = repr(cfg)
+        assert "60.0" in r
+
+
+class TestConfigTimeout:
+    def test_default_timeout(self):
+        cfg = Config()
+        assert cfg.request_timeout == 30.0
+
+    def test_custom_timeout(self):
+        cfg = Config(request_timeout=15.0)
+        assert cfg.request_timeout == 15.0
+
+
 class TestCacheKey:
     def test_same_inputs_same_key(self):
         from racing_mcp.client import _cache_key
