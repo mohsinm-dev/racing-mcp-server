@@ -52,6 +52,29 @@ def _select_cache(url: str) -> TTLCache:
     return _cache_analysis  # Default to medium-TTL cache
 
 
+_ALL_CACHES = [_cache_static, _cache_racecards, _cache_results, _cache_analysis, _cache_search]
+
+
+def clear_caches() -> int:
+    """Clear all endpoint caches. Returns the total number of evicted entries."""
+    total = sum(len(c) for c in _ALL_CACHES)
+    for c in _ALL_CACHES:
+        c.clear()
+    logger.info(f"Cleared {total} cached entries across all cache buckets")
+    return total
+
+
+def cache_stats() -> dict[str, int]:
+    """Return current size of each cache bucket."""
+    return {
+        "static": len(_cache_static),
+        "racecards": len(_cache_racecards),
+        "results": len(_cache_results),
+        "analysis": len(_cache_analysis),
+        "search": len(_cache_search),
+    }
+
+
 # ── Rate limiter ────────────────────────────────────────────────────────────────
 
 class RateLimiter:
